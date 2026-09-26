@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>MatchFocus Live</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background-color: #050608;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      color: #ffffff;
+    }
+
+    .app-viewport {
+      width: 100%;
+      max-width: 412px;
+      height: 100vh;
+      max-height: 890px;
+      background-color: #0e1117;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      overflow: hidden;
+      border: 1px solid #1f232e;
+    }
+
+    @media (min-width: 450px) {
+      .app-viewport {
+        border-radius: 36px;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.8);
+      }
+    }
+
+    .header {
+      padding: 24px 18px 12px 18px;
+      background: #0e1117;
+    }
+
+    .top-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .brand-title {
+      font-size: 24px;
+      font-weight: 900;
+      letter-spacing: -0.5px;
+    }
+
+    .brand-title span {
+      color: #d2ff00;
+    }
+
+    .sub-brand {
+      font-size: 11px;
+      font-weight: 700;
+      color: #7b8190;
+      letter-spacing: 0.8px;
+      margin-top: 2px;
+    }
+
+    .icon-btn {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      background: #1b1f2b;
+      border: 1px solid #272d3d;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+
+    .filter-scroll {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      margin-top: 14px;
+      padding-bottom: 4px;
+    }
+
+    .filter-scroll::-webkit-scrollbar { display: none; }
+
+    .filter-pill {
+      background: #151821;
+      border: 1px solid #252a38;
+      color: #8b92a5;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 6px 14px;
+      border-radius: 20px;
+      white-space: nowrap;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .filter-pill.active {
+      color: #d2ff00;
+      border-color: #d2ff00;
+      background: #1b221e;
+    }
+
+    .separator-dotted {
+      border: none;
+      border-top: 1.5px dotted #1b6894;
+      margin: 10px 0 0 0;
+      opacity: 0.7;
+    }
+
+    .feed-container {
+      flex: 1;
+      overflow-y: auto;
+      padding: 14px 18px 80px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .job-card {
+      background-color: #161922;
+      border: 1px solid #242938;
+      border-radius: 20px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .card-header {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      position: relative;
+    }
+
+    .badge-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      background: #202430;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 900;
+      flex-shrink: 0;
+    }
+
+    .badge-hh { color: #ff3333; border: 1px solid rgba(255, 51, 51, 0.3); }
+    .badge-avito { color: #00aaff; border: 1px solid rgba(0, 170, 255, 0.3); }
+    .badge-job { color: #00d084; border: 1px solid rgba(0, 208, 132, 0.3); }
+
+    .header-content {
+      flex: 1;
+      padding-right: 60px;
+    }
+
+    .job-title {
+      font-size: 15px;
+      font-weight: 700;
+      line-height: 1.25;
+      color: #ffffff;
+    }
+
+    .job-sub {
+      font-size: 12px;
+      color: #7b8190;
+      margin-top: 4px;
+    }
+
+    .urgent-pill {
+      position: absolute;
+      top: 0;
+      right: 0;
+      background: rgba(255, 68, 68, 0.15);
+      border: 1px solid #ff4444;
+      color: #ff4444;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 10px;
+    }
+
+    .tags-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .tag-chip {
+      background: #101218;
+      border: 1px solid #232734;
+      color: #8b92a5;
+      font-size: 11px;
+      font-weight: 500;
+      padding: 4px 9px;
+      border-radius: 6px;
+    }
+
+    .price-chip {
+      color: #d2ff00;
+      border-color: rgba(210, 255, 0, 0.3);
+      font-weight: 700;
+    }
+
+    .card-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 4px;
+    }
+
+    .deadline-text {
+      font-size: 11px;
+      color: #7b8190;
+    }
+
+    .btn-action {
+      background: #d2ff00;
+      color: #0e1117;
+      font-size: 12px;
+      font-weight: 800;
+      border: none;
+      padding: 9px 18px;
+      border-radius: 20px;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-block;
+    }
+
+    .bottom-nav {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 64px;
+      background: #0e1117;
+      border-top: 1.5px dotted #1b6894;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      padding-bottom: 6px;
+    }
+
+    .nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      color: #5e6577;
+      font-size: 10px;
+      font-weight: 700;
+      cursor: pointer;
+      border: none;
+      background: transparent;
+    }
+
+    .nav-item.active { color: #d2ff00; }
+    .nav-icon { font-size: 15px; }
+  </style>
+</head>
+<body>
+
+  <div class="app-viewport">
+    <header class="header">
+      <div class="top-row">
+        <div>
+          <div class="brand-title">MATCH <span>FOCUS</span></div>
+          <div class="sub-brand">СПОРТИВНАЯ РЕПОРТАЖНАЯ ЛЕНТА</div>
+        </div>
+        <button class="icon-btn" onclick="fetchFromYandexDisk()">🔄</button>
+      </div>
+
+      <div class="filter-scroll">
+        <button class="filter-pill active" onclick="setFilter('ALL', this)">Все источники</button>
+        <button class="filter-pill" onclick="setFilter('HH', this)">HeadHunter</button>
+        <button class="filter-pill" onclick="setFilter('AVITO', this)">Авито</button>
+        <button class="filter-pill" onclick="setFilter('JOB', this)">Job / ТрудВсем</button>
+      </div>
+
+      <hr class="separator-dotted">
+    </header>
+
+    <main class="feed-container" id="feed"></main>
+
+    <nav class="bottom-nav">
+      <button class="nav-item active"><span class="nav-icon">⚡</span><span>Радар</span></button>
+      <button class="nav-item"><span class="nav-icon">★</span><span>Избранное</span></button>
+      <button class="nav-item"><span class="nav-icon">📷</span><span>Мой сетап</span></button>
+      <button class="nav-item"><span class="nav-icon">👤</span><span>Профиль</span></button>
+    </nav>
+  </div>
+
+  <script>
+    // ВСТАВЬТЕ СЮДА ВАШУ ПУБЛИЧНУЮ ССЫЛКУ С ЯНДЕКС ДИСКА:
+    const YANDEX_PUBLIC_URL = "https://disk.yandex.ru/d/4U_uRE27KJAz3Q";
+
+
+    let rawVacancies = [];
+    let currentFilter = 'ALL';
+
+    async function fetchFromYandexDisk() {
+      const feed = document.getElementById('feed');
+      feed.innerHTML = `
+        <div style="text-align: center; color: #7b8190; padding-top: 60px; font-size: 13px;">
+          Загрузка вакансий с Яндекс Диска...
+        </div>
+      `;
+
+      try {
+        // Запрос к бесплатному публичному REST API Яндекс Диска для получения прямой ссылки на скачивание
+        const metaApiUrl = `https://cloud-api.yandex.net/v1/disk/public/resources/download?public_key=${encodeURIComponent(YANDEX_PUBLIC_URL)}`;
+        const metaResponse = await fetch(metaApiUrl);
+        const metaData = await metaResponse.json();
+
+        if (!metaData.href) {
+          throw new Error("Не удалось получить ссылку на файл");
+        }
+
+        // Скачиваем сам JSON файл
+        const fileResponse = await fetch(metaData.href);
+        rawVacancies = await fileResponse.json();
+        renderFeed();
+
+      } catch (err) {
+        console.error(err);
+        feed.innerHTML = `
+          <div style="text-align: center; color: #ff5555; padding: 40px 15px; font-size: 13px; line-height: 1.5;">
+            Ошибка загрузки с Яндекс Диска.<br>
+            Проверьте, вставили ли вы публичную ссылку в <b>YANDEX_PUBLIC_URL</b>.
+          </div>
+        `;
+      }
+    }
+
+    function setFilter(source, element) {
+      document.querySelectorAll('.filter-pill').forEach(btn => btn.classList.remove('active'));
+      element.classList.add('active');
+      currentFilter = source;
+      renderFeed();
+    }
+
+    function renderFeed() {
+      const feed = document.getElementById('feed');
+      feed.innerHTML = '';
+
+      const filtered = rawVacancies.filter(item => {
+        if (currentFilter === 'ALL') return true;
+        return item.source === currentFilter;
+      });
+
+      if (filtered.length === 0) {
+        feed.innerHTML = `
+          <div style="text-align: center; color: #7b8190; padding-top: 50px; font-size: 13px;">
+            В выбранном разделе нет вакансий.
+          </div>
+        `;
+        return;
+      }
+
+      filtered.forEach(item => {
+        const badgeClass = item.source === 'HH' ? 'badge-hh' : (item.source === 'AVITO' ? 'badge-avito' : 'badge-job');
+        
+        const card = document.createElement('div');
+        card.className = 'job-card';
+        card.innerHTML = `
+          <div class="card-header">
+            <div class="badge-icon ${badgeClass}">${item.source}</div>
+            <div class="header-content">
+              <div class="job-title">${item.title}</div>
+              <div class="job-sub">${item.company} • ${item.location}</div>
+            </div>
+            ${item.is_urgent ? `<span class="urgent-pill">Срочно</span>` : ''}
+          </div>
+
+          <div class="tags-container">
+            <span class="tag-chip price-chip">${item.price}</span>
+            ${item.tags.map(t => `<span class="tag-chip">${t}</span>`).join('')}
+          </div>
+
+          <div class="card-footer">
+            <span class="deadline-text">${item.deadline}</span>
+            <a href="${item.url}" target="_blank" class="btn-action">
+              ${item.source === 'AVITO' ? 'На Авито' : 'Откликнуться'}
+            </a>
+          </div>
+        `;
+        feed.appendChild(card);
+      });
+    }
+
+    document.addEventListener('DOMContentLoaded', fetchFromYandexDisk);
+  </script>
+</body>
+</html>
