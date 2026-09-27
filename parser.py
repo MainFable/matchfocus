@@ -5,14 +5,24 @@ from bs4 import BeautifulSoup
 
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
-    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
-    "Accept-Language": "ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7",
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+    "Accept-Language": "ru-RU,ru;q=0.9",
 }
 
 def parse_trudvsem():
     print("-> Сбор с портала Работа России (ТрудВсем)...")
     items = []
-    queries = ["фотограф", "репортаж"]
+    
+    # Целевые запросы для репортажа и спорта
+    queries = [
+        "спортивный фотограф",
+        "фотограф",
+        "репортаж",
+        "фотокорреспондент",
+        "видеооператор"
+    ]
+    
+    # 77 - Москва, 50 - Московская область
     regions = [
         ("7700000000000", "Москва"),
         ("5000000000000", "Московская область")
@@ -36,8 +46,14 @@ def parse_trudvsem():
                             continue
                         seen_ids.add(v_id)
 
-                        name = v.get("job-name", "Специалист по съемке")
+                        name = v.get("job-name", "Фотограф / Репортаж")
+                        name_lower = name.lower()
 
+                        # Фильтруем случайные совпадения
+                        if not any(w in name_lower for w in ["фото", "съемк", "репортаж", "видео", "корреспондент"]):
+                            continue
+
+                        # Зарплатная вилка
                         price = "По договорённости"
                         sal_min = v.get("salary_min")
                         sal_max = v.get("salary_max")
@@ -48,25 +64,32 @@ def parse_trudvsem():
                         elif sal_max:
                             price = f"до {sal_max:,} ₽".replace(",", " ")
 
-                        duty = v.get("duty") or "Обязанности уточняются у работодателя."
-                        duty_clean = duty.replace("<p>", "").replace("</p>", "").replace("<br>", " ")
+                        # Теги
+                        tags = ["Репортаж"]
+                        if any(s in name_lower for s in ["спорт", "турнир", "матч", "арен"]):
+                            tags.append("Спорт")
+                        else:
+                            tags.append("События")
+
+                        duty = v.get("duty") or "Репортажная фотосъемка мероприятий и подготовка фотоматериалов."
+                        duty_clean = duty.replace("<p>", "").replace("</p>", "").replace("<br>", " ").strip()
 
                         items.append({
                             "id": v_id,
-                            "source": "Job / ТрудВсем",
+                            "source": "Работа России",
                             "title": name,
                             "company": v.get("company", {}).get("name", "Организация / Клуб"),
                             "location": reg_name,
                             "price": price,
-                            "tags": ["Репортаж", "Гос. сектор / Клубы"],
+                            "tags": tags,
                             "url": v.get("vac_url", "https://trudvsem.ru"),
                             "is_urgent": False,
                             "deadline": "Актуально",
-                            "description": duty_clean[:250] + ("..." if len(duty_clean) > 250 else "")
+                            "description": duty_clean[:260] + ("..." if len(duty_clean) > 260 else "")
                         })
             except Exception as e:
                 print(f"Ошибка запроса ТрудВсем ({q}): {e}")
-            time.sleep(0.3)
+            time.sleep(0.2)
 
     print(f"-> Итого собрано с ТрудВсем: {len(items)}")
     return items
@@ -74,21 +97,24 @@ def parse_trudvsem():
 def parse_avito():
     print("-> Сбор с Авито (Москва и МО)...")
     items = []
-    queries = ["спортивный+фотограф", "фотограф+мероприятий", "фотограф+репортаж"]
+    
+    # Точечные запросы на Авито
+    queries = [
+        "спортивный+фотограф",
+        "фотограф+на+турнир",
+        "фотограф+на+мероприятие",
+        "фотограф+соревнований"
+    ]
     seen_ids = set()
 
     for q in queries:
         url = f"https://www.avito.ru/moskva_i_mo/vakansii?q={q}"
         try:
             res = requests.get(url, headers=HEADERS, timeout=12)
-            print(f"Запрос Авито: '{q}' -> Статус: {res.status_code}")
-            
             if res.status_code == 200:
                 soup = BeautifulSoup(res.text, "html.parser")
                 cards = soup.select('div[data-marker="item"]')
-                print(f"  Найдено карточек на странице Авито: {len(cards)}")
-                
-                for card in cards[:10]:
+                for card in cards[:12]:
                     link_el = card.select_one('a[data-marker="item-title"]')
                     title_el = card.select_one('h3[itemprop="name"]') or link_el
                     price_el = card.select_one('meta[itemprop="price"]') or card.select_one('[data-marker="item-price"]')
@@ -113,7 +139,11 @@ def parse_avito():
                         if pval and any(c.isdigit() for c in pval):
                             price = f"{pval} ₽" if "₽" not in pval else pval
 
-                    loc = geo_el.get_text(strip=True) if geo_el else "Москва и область"
+                    loc = geo_el.get_text(strip=True) if geo_el else "Москва / МО"
+
+                    tags = ["Авито", "Репортаж"]
+                    if any(w in title.lower() for w in ["спорт", "турнир", "матч", "футбол", "хоккей"]):
+                        tags.append("Спорт")
 
                     items.append({
                         "id": v_id,
@@ -122,17 +152,15 @@ def parse_avito():
                         "company": "Заказчик с Авито",
                         "location": loc,
                         "price": price,
-                        "tags": ["Авито", "Спорт / События"],
+                        "tags": tags,
                         "url": link,
-                        "is_urgent": "срочно" in title.lower(),
-                        "deadline": "Актуально",
-                        "description": "Свежее объявление о поиске фотографа на Авито. Перейдите по ссылке для связи с заказчиком."
+                        "is_urgent": any(w in title.lower() for w in ["срочно", "турнир", "выходные"]),
+                        "deadline": "Свежее",
+                        "description": "Заказ на фотосъемку с Авито. Нажмите «Откликнуться», чтобы открыть объявление."
                     })
-            else:
-                print(f"  Авито вернул статус {res.status_code} (возможна защита от ботов)")
         except Exception as e:
-            print(f"Ошибка запроса Авито ({q}): {e}")
-        time.sleep(1.0)
+            print(f"Ошибка Авито ({q}): {e}")
+        time.sleep(0.8)
 
     print(f"-> Итого собрано с Авито: {len(items)}")
     return items
@@ -142,41 +170,10 @@ def main():
     avito_jobs = parse_avito()
     all_jobs = trud_jobs + avito_jobs
 
-    if not all_jobs:
-        print("Внешние базы не вернули данных, создаем демонстрационный спортивный пул...")
-        all_jobs = [
-            {
-                "id": "match_1",
-                "source": "Авито",
-                "title": "Фотограф на турнир по футболу (выходные)",
-                "company": "Организатор детско-юношеского первенства",
-                "location": "Москва (САО)",
-                "price": "от 6 000 ₽ / игровой день",
-                "tags": ["Футбол", "Репортаж", "Турнир"],
-                "url": "https://www.avito.ru",
-                "is_urgent": True,
-                "deadline": "Срочно",
-                "description": "Требуется фотограф с длиннофокусной оптикой (70-200mm) для съемки матчей кубка."
-            },
-            {
-                "id": "match_2",
-                "source": "Job / ТрудВсем",
-                "title": "Фотокорреспондент / оператор спортивных соревнований",
-                "company": "Спортивный комплекс «Арена»",
-                "location": "Московская область",
-                "price": "65 000 – 85 000 ₽",
-                "tags": ["Штат", "Спорт", "Арена"],
-                "url": "https://trudvsem.ru",
-                "is_urgent": False,
-                "deadline": "Актуально",
-                "description": "Репортажная съемка соревнований, подготовка репортажей для пресс-службы и медиаресурсов."
-            }
-        ]
-
     with open("vacancies.json", "w", encoding="utf-8") as f:
         json.dump(all_jobs, f, ensure_ascii=False, indent=2)
 
-    print(f"Завершено. В vacancies.json сохранено объектов: {len(all_jobs)}")
+    print(f"Готово! В vacancies.json записано объектов: {len(all_jobs)}")
 
 if __name__ == "__main__":
     main()
