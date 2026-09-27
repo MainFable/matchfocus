@@ -3,8 +3,19 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>MatchFocus Live</title>
+  <title>MatchFocus — Спортивная лента</title>
   <style>
+    :root {
+      --bg: #0b0e14;
+      --card-bg: #141923;
+      --accent: #ccff00;
+      --accent-dim: rgba(204, 255, 0, 0.12);
+      --text: #ffffff;
+      --text-muted: #8b94a5;
+      --border: #232a3b;
+      --border-focus: #343f58;
+    }
+
     * {
       box-sizing: border-box;
       margin: 0;
@@ -14,244 +25,240 @@
     }
 
     body {
-      background-color: #050608;
+      background-color: var(--bg);
+      color: var(--text);
       display: flex;
       justify-content: center;
-      align-items: center;
       min-height: 100vh;
-      color: #ffffff;
     }
 
-    .app-viewport {
+    .app-container {
       width: 100%;
-      max-width: 412px;
-      height: 100vh;
-      max-height: 890px;
-      background-color: #0e1117;
+      max-width: 480px;
       display: flex;
       flex-direction: column;
+      height: 100vh;
       position: relative;
-      overflow: hidden;
-      border: 1px solid #1f232e;
+      background: var(--bg);
     }
 
-    @media (min-width: 450px) {
-      .app-viewport {
-        border-radius: 36px;
-        box-shadow: 0 20px 40px rgba(0,0,0,0.8);
-      }
+    /* Шапка */
+    header {
+      padding: 16px 20px 12px;
+      background: rgba(11, 14, 20, 0.95);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 10;
     }
 
-    .header {
-      padding: 24px 18px 12px 18px;
-      background: #0e1117;
-    }
-
-    .top-row {
+    .header-top {
       display: flex;
       justify-content: space-between;
       align-items: center;
+      margin-bottom: 12px;
     }
 
-    .brand-title {
-      font-size: 24px;
+    .logo {
+      font-size: 20px;
       font-weight: 900;
-      letter-spacing: -0.5px;
+      letter-spacing: 0.5px;
+      color: #fff;
     }
 
-    .brand-title span {
-      color: #d2ff00;
+    .logo span {
+      color: var(--accent);
     }
 
-    .sub-brand {
-      font-size: 11px;
-      font-weight: 700;
-      color: #7b8190;
-      letter-spacing: 0.8px;
-      margin-top: 2px;
-    }
-
-    .icon-btn {
-      width: 38px;
-      height: 38px;
-      border-radius: 50%;
-      background: #1b1f2b;
-      border: 1px solid #272d3d;
+    .refresh-btn {
+      background: #1c2230;
+      border: 1px solid var(--border);
+      color: var(--text);
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
       display: flex;
       align-items: center;
       justify-content: center;
       cursor: pointer;
+      font-size: 15px;
+      transition: all 0.2s;
     }
 
-    .filter-scroll {
+    .refresh-btn:active {
+      transform: rotate(90deg);
+      border-color: var(--accent);
+    }
+
+    /* Фильтры */
+    .filters {
       display: flex;
       gap: 8px;
       overflow-x: auto;
-      margin-top: 14px;
-      padding-bottom: 4px;
+      scrollbar-width: none;
     }
+    .filters::-webkit-scrollbar { display: none; }
 
-    .filter-scroll::-webkit-scrollbar { display: none; }
-
-    .filter-pill {
-      background: #151821;
-      border: 1px solid #252a38;
-      color: #8b92a5;
-      font-size: 12px;
-      font-weight: 600;
+    .filter-chip {
+      background: #141923;
+      border: 1px solid var(--border);
+      color: var(--text-muted);
       padding: 6px 14px;
       border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
       white-space: nowrap;
       cursor: pointer;
-      transition: 0.2s;
+      transition: all 0.2s;
     }
 
-    .filter-pill.active {
-      color: #d2ff00;
-      border-color: #d2ff00;
-      background: #1b221e;
+    .filter-chip.active {
+      background: var(--accent-dim);
+      border-color: var(--accent);
+      color: var(--accent);
     }
 
-    .separator-dotted {
-      border: none;
-      border-top: 1.5px dotted #1b6894;
-      margin: 10px 0 0 0;
-      opacity: 0.7;
-    }
-
-    .feed-container {
+    /* Лента вакансий */
+    .feed {
       flex: 1;
       overflow-y: auto;
-      padding: 14px 18px 80px 18px;
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
+      padding: 16px 16px 80px;
     }
 
-    .job-card {
-      background-color: #161922;
-      border: 1px solid #242938;
-      border-radius: 20px;
+    /* Карточка с четким разделителем */
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 14px;
       padding: 16px;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
+      margin-bottom: 16px;
+      position: relative;
+      transition: transform 0.15s, border-color 0.15s;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+
+    .card:hover, .card:active {
+      border-color: var(--border-focus);
+    }
+
+    /* Нижняя тонкая линия-разделитель между блоками */
+    .card::after {
+      content: "";
+      position: absolute;
+      bottom: -9px;
+      left: 10%;
+      width: 80%;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(52, 63, 88, 0.5), transparent);
+    }
+
+    .card:last-child::after {
+      display: none;
     }
 
     .card-header {
       display: flex;
-      gap: 12px;
-      align-items: flex-start;
-      position: relative;
-    }
-
-    .badge-icon {
-      width: 44px;
-      height: 44px;
-      border-radius: 12px;
-      background: #202430;
-      display: flex;
+      justify-content: space-between;
       align-items: center;
-      justify-content: center;
+      margin-bottom: 8px;
+    }
+
+    .source-badge {
       font-size: 11px;
-      font-weight: 900;
-      flex-shrink: 0;
-    }
-
-    .badge-hh { color: #ff3333; border: 1px solid rgba(255, 51, 51, 0.3); }
-    .badge-avito { color: #00aaff; border: 1px solid rgba(0, 170, 255, 0.3); }
-    .badge-job { color: #00d084; border: 1px solid rgba(0, 208, 132, 0.3); }
-
-    .header-content {
-      flex: 1;
-      padding-right: 60px;
-    }
-
-    .job-title {
-      font-size: 15px;
       font-weight: 700;
-      line-height: 1.25;
-      color: #ffffff;
+      text-transform: uppercase;
+      padding: 3px 8px;
+      border-radius: 6px;
+      background: #1e2638;
+      color: #9cb0d4;
+      border: 1px solid #2e3a54;
     }
 
-    .job-sub {
-      font-size: 12px;
-      color: #7b8190;
-      margin-top: 4px;
-    }
-
-    .urgent-pill {
-      position: absolute;
-      top: 0;
-      right: 0;
-      background: rgba(255, 68, 68, 0.15);
-      border: 1px solid #ff4444;
-      color: #ff4444;
-      font-size: 10px;
-      font-weight: 700;
-      padding: 2px 8px;
-      border-radius: 10px;
-    }
-
-    .tags-container {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-    }
-
-    .tag-chip {
-      background: #101218;
-      border: 1px solid #232734;
-      color: #8b92a5;
+    .badge-urgent {
+      background: rgba(255, 75, 75, 0.15);
+      color: #ff5555;
+      border: 1px solid rgba(255, 75, 75, 0.3);
       font-size: 11px;
-      font-weight: 500;
-      padding: 4px 9px;
+      font-weight: 700;
+      padding: 3px 8px;
       border-radius: 6px;
     }
 
-    .price-chip {
-      color: #d2ff00;
-      border-color: rgba(210, 255, 0, 0.3);
+    .card-title {
+      font-size: 15px;
       font-weight: 700;
+      line-height: 1.35;
+      color: #ffffff;
+      margin-bottom: 6px;
+    }
+
+    .card-company {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-bottom: 10px;
+    }
+
+    .tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 12px;
+    }
+
+    .tag {
+      font-size: 11px;
+      background: #19202e;
+      color: #8da2c0;
+      padding: 3px 8px;
+      border-radius: 6px;
+      border: 1px solid #253046;
     }
 
     .card-footer {
       display: flex;
       justify-content: space-between;
       align-items: center;
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+      padding-top: 12px;
       margin-top: 4px;
     }
 
-    .deadline-text {
-      font-size: 11px;
-      color: #7b8190;
+    .price {
+      font-size: 15px;
+      font-weight: 800;
+      color: var(--accent);
     }
 
-    .btn-action {
-      background: #d2ff00;
-      color: #0e1117;
+    .respond-btn {
+      background: var(--accent);
+      color: #0b0e14;
+      border: none;
       font-size: 12px;
       font-weight: 800;
-      border: none;
-      padding: 9px 18px;
-      border-radius: 20px;
+      padding: 7px 14px;
+      border-radius: 8px;
       cursor: pointer;
       text-decoration: none;
-      display: inline-block;
     }
 
-    .bottom-nav {
+    .respond-btn:hover {
+      opacity: 0.9;
+    }
+
+    /* Нижняя навигация */
+    nav {
       position: absolute;
       bottom: 0;
-      left: 0;
-      right: 0;
-      height: 64px;
-      background: #0e1117;
-      border-top: 1.5px dotted #1b6894;
+      width: 100%;
+      height: 60px;
+      background: rgba(11, 14, 20, 0.96);
+      backdrop-filter: blur(12px);
+      border-top: 1px solid var(--border);
       display: flex;
       justify-content: space-around;
       align-items: center;
-      padding-bottom: 6px;
+      z-index: 10;
     }
 
     .nav-item {
@@ -259,68 +266,65 @@
       flex-direction: column;
       align-items: center;
       gap: 3px;
-      color: #5e6577;
-      font-size: 10px;
-      font-weight: 700;
-      cursor: pointer;
+      background: none;
       border: none;
-      background: transparent;
+      color: var(--text-muted);
+      font-size: 10px;
+      cursor: pointer;
     }
 
-    .nav-item.active { color: #d2ff00; }
-    .nav-icon { font-size: 15px; }
+    .nav-item.active {
+      color: var(--accent);
+    }
+
+    .nav-icon {
+      font-size: 16px;
+    }
   </style>
 </head>
 <body>
 
-  <div class="app-viewport">
-    <header class="header">
-      <div class="top-row">
-        <div>
-          <div class="brand-title">MATCH <span>FOCUS</span></div>
-          <div class="sub-brand">СПОРТИВНАЯ РЕПОРТАЖНАЯ ЛЕНТА</div>
-        </div>
-       <button class="icon-btn" onclick="loadVacancies()">🔄</button>
+  <div class="app-container">
+    <header>
+      <div class="header-top">
+        <div class="logo">MATCH <span>FOCUS</span></div>
+        <button class="refresh-btn" onclick="loadVacancies()">🔄</button>
       </div>
-
-      <div class="filter-scroll">
-        <button class="filter-pill active" onclick="setFilter('ALL', this)">Все источники</button>
-        <button class="filter-pill" onclick="setFilter('HH', this)">HeadHunter</button>
-        <button class="filter-pill" onclick="setFilter('AVITO', this)">Авито</button>
-        <button class="filter-pill" onclick="setFilter('JOB', this)">Job / ТрудВсем</button>
+      <div class="filters">
+        <button class="filter-chip active" onclick="setFilter('ALL', this)">Все источники</button>
+        <button class="filter-chip" onclick="setFilter('Работа России', this)">Работа России</button>
+        <button class="filter-chip" onclick="setFilter('Авито', this)">Авито</button>
       </div>
-
-      <hr class="separator-dotted">
     </header>
 
-    <main class="feed-container" id="feed"></main>
+    <main class="feed" id="feed"></main>
 
-    <nav class="bottom-nav">
+    <nav>
       <button class="nav-item active"><span class="nav-icon">⚡</span><span>Радар</span></button>
       <button class="nav-item"><span class="nav-icon">★</span><span>Избранное</span></button>
-      <button class="nav-item"><span class="nav-icon">📷</span><span>Мой сетап</span></button>
+      <button class="nav-item"><span class="nav-icon">📷</span><span>Сетап</span></button>
       <button class="nav-item"><span class="nav-icon">👤</span><span>Профиль</span></button>
     </nav>
   </div>
 
- <script>
+  <script>
     let rawVacancies = [];
     let currentFilter = 'ALL';
 
     async function loadVacancies() {
       const feed = document.getElementById('feed');
       if (!feed) return;
-      
+
       feed.innerHTML = `
         <div style="text-align: center; color: #7b8190; padding-top: 60px; font-size: 13px;">
-          Загрузка вакансий...
+          Обновление ленты...
         </div>
       `;
 
       try {
         const response = await fetch('./vacancies.json?v=' + Date.now());
         if (!response.ok) {
-          throw new Error("Файл vacancies.json ещё не создан в репозитории");
+          throw new Error("Файл данных ещё формируется");
         }
         rawVacancies = await response.json();
         renderFeed();
@@ -328,8 +332,7 @@
         console.error(err);
         feed.innerHTML = `
           <div style="text-align: center; color: #ff5555; padding: 40px 15px; font-size: 13px; line-height: 1.5;">
-            Ошибка загрузки: ${err.message}.<br>
-            Убедитесь, что файл vacancies.json есть в репозитории.
+            ${err.message}.<br>Нажмите 🔄 через пару секунд.
           </div>
         `;
       }
@@ -348,7 +351,7 @@
 
       const filtered = rawVacancies.filter(v => {
         if (currentFilter === 'ALL') return true;
-        return (v.source || '').toUpperCase() === currentFilter.toUpperCase();
+        return (v.source || '').trim().toLowerCase() === currentFilter.trim().toLowerCase();
       });
 
       if (filtered.length === 0) {
@@ -363,11 +366,11 @@
       feed.innerHTML = filtered.map(v => `
         <div class="card" onclick="openDetails('${v.id}')">
           <div class="card-header">
-            <span class="source-tag source-${(v.source || 'hh').toLowerCase()}">${v.source || 'HH'}</span>
-            <span class="deadline">${v.deadline || 'Свежее'}</span>
+            <span class="source-badge">${v.source || 'Инфо'}</span>
+            ${v.is_urgent ? '<span class="badge-urgent">Срочно</span>' : `<span style="font-size: 11px; color: #7b8190;">${v.deadline || 'Актуально'}</span>`}
           </div>
           <div class="card-title">${v.title}</div>
-          <div class="card-company">${v.company || 'Прямой заказчик'} • ${v.location || 'Москва / МО'}</div>
+          <div class="card-company">${v.company || 'Заказчик'} • ${v.location || 'Москва и МО'}</div>
           <div class="tags">
             ${(v.tags || []).map(t => `<span class="tag">${t}</span>`).join('')}
           </div>
@@ -382,7 +385,7 @@
     function openDetails(id) {
       const vac = rawVacancies.find(v => v.id === id);
       if (!vac) return;
-      alert(`${vac.title}\n\nОрганизация: ${vac.company}\nЛокация: ${vac.location}\nОплата: ${vac.price}\n\n${vac.description || ''}`);
+      alert(`${vac.title}\n\nРаботодатель / Заказчик: ${vac.company}\nЛокация: ${vac.location}\nОплата: ${vac.price}\n\n${vac.description || ''}`);
     }
 
     document.addEventListener('DOMContentLoaded', loadVacancies);
