@@ -2,8 +2,9 @@ import json
 import time
 import requests
 
+# HH требует валидный формат User-Agent с контактом разработчика:
 HEADERS = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+    "User-Agent": "MatchFocusApp/1.0 (https://github.com/MainFable/matchfocus; contact: mainfable@mail.ru)",
     "Accept": "application/json",
 }
 
@@ -11,18 +12,17 @@ def parse_hh():
     print("-> Сбор с HeadHunter...")
     items = []
     
-    # Добавили тестовый запрос 'водитель' первым в списке
     queries = [
-        "водитель",
+        "водитель",             # Тестовый запрос
         "фотограф",
         "репортажный фотограф",
-        "спортивный фотограф"
+        "спортивный фотограф",
+        "фотограф соревнований"
     ]
     seen_ids = set()
 
     for q in queries:
-        # 1 - Москва, 2014 - МО
-        for area_id in [1, 2014]:
+        for area_id in [1, 2014]:  # 1 - Москва, 2014 - МО
             url = "https://api.hh.ru/vacancies"
             params = {
                 "text": q,
@@ -84,7 +84,7 @@ def parse_hh():
                     print(f"  Ошибка HH ответа: {res.text[:200]}")
             except Exception as e:
                 print(f"Исключение при запросе HH ({q}): {e}")
-            time.sleep(0.2)
+            time.sleep(0.3)
 
     print(f"-> Итого сохранено с HH: {len(items)}")
     return items
