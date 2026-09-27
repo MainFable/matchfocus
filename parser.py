@@ -1,4 +1,3 @@
-import os
 import json
 import time
 import requests
@@ -16,7 +15,7 @@ def parse_hh():
     seen_ids = set()
 
     for q in queries:
-        for area_id in [1, 2014]:  # Москва и Московская область
+        for area_id in [1, 2014]:  # Москва и МО
             url = "https://api.hh.ru/vacancies"
             params = {
                 "text": q,
@@ -104,38 +103,11 @@ def parse_avito():
         print(f"Ошибка Avito: {e}")
     return items
 
-def upload_to_yandex_disk(file_path, yandex_token):
-    print("-> Выгрузка на Яндекс Диск...")
-    headers = {"Authorization": f"OAuth {yandex_token}"}
-    
-    get_url = "https://cloud-api.yandex.net/v1/disk/resources/upload"
-    params = {"path": "vacancies.json", "overwrite": "true"}
-    
-    res = requests.get(get_url, headers=headers, params=params)
-    if res.status_code == 200:
-        upload_link = res.json().get("href")
-        with open(file_path, "rb") as f:
-            put_res = requests.put(upload_link, files={"file": f})
-            if put_res.status_code in [200, 201]:
-                print("Успешно загружено на Яндекс Диск!")
-            else:
-                print(f"Ошибка заливки файла: {put_res.status_code}")
-    else:
-        print(f"Ошибка получения ссылки на загрузку: {res.text}")
-
 def main():
     jobs = parse_hh() + parse_avito()
-    file_name = "vacancies.json"
-    
-    with open(file_name, "w", encoding="utf-8") as f:
+    with open("vacancies.json", "w", encoding="utf-8") as f:
         json.dump(jobs, f, ensure_ascii=False, indent=2)
-    print(f"Собрано {len(jobs)} вакансий.")
-
-    token = os.environ.get("YANDEX_DISK_TOKEN")
-    if token:
-        upload_to_yandex_disk(file_name, token)
-    else:
-        print("Токен Яндекс Диска не найден в переменных окружения.")
+    print(f"Успешно сохранено {len(jobs)} вакансий прямо в файл vacancies.json!")
 
 if __name__ == "__main__":
     main()
