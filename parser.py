@@ -3,22 +3,23 @@ import time
 import requests
 
 HEADERS = {
-    "User-Agent": "MatchFocusBot/1.0 (contact: support@matchfocus.local)",
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
     "Accept": "application/json",
 }
 
 def parse_hh():
     print("-> Сбор с HeadHunter...")
     items = []
-    # Расширенный список релевантных запросов для спортивного и динамичного репортажа
+    
+    # Расширенный спектр запросов
     queries = [
-        "спортивный фотограф",
-        "фотограф спорт",
+        "фотограф",
         "репортажный фотограф",
-        "фотограф мероприятий",
-        "фотограф матчей",
+        "фотограф на мероприятие",
+        "фотограф на турнир",
+        "спортивный фотограф",
         "фотокорреспондент",
-        "видеооператор спорт"
+        "фотограф соревнований"
     ]
     seen_ids = set()
 
@@ -29,7 +30,7 @@ def parse_hh():
             params = {
                 "text": q,
                 "area": area_id,
-                "per_page": 15,
+                "per_page": 20,
                 "order_by": "publication_time",
             }
             try:
@@ -42,7 +43,9 @@ def parse_hh():
                             continue
                         seen_ids.add(v_id)
 
-                        # Обработка вилки гонорара
+                        name = vac.get("name", "Фотограф")
+
+                        # Зарплатная вилка
                         price = "По договорённости"
                         sal = vac.get("salary")
                         if sal:
@@ -54,43 +57,51 @@ def parse_hh():
                             elif sal.get("to"):
                                 price = f"до {sal['to']:,} {cur}".replace(",", " ")
 
-                        # Теги специализации
-                        emp = vac.get("employment", {}).get("name", "Репортаж")
-                        schedule = vac.get("schedule", {}).get("name", "Проектная работа")
-                        tags = [t for t in [emp, schedule, "Спорт / Экшн"] if t]
+                        # Определяем теги
+                        tags = ["Репортаж"]
+                        name_lower = name.lower()
+                        if any(w in name_lower for w in ["спорт", "турнир", "матч", "соревнован"]):
+                            tags.append("Спорт")
+                        elif any(w in name_lower for w in ["мероприят", "событи", "ивент", "event"]):
+                            tags.append("Ивенты")
+                        else:
+                            tags.append("Фотосъемка")
+
+                        schedule = vac.get("schedule", {}).get("name")
+                        if schedule:
+                            tags.append(schedule)
 
                         snippet = vac.get("snippet", {})
-                        resp_text = snippet.get("requirement") or snippet.get("responsibility") or "Съемка спортивных соревнований, турниров и динамичных событий."
-                        # Очистка от подсветки тегов HH
-                        clean_desc = resp_text.replace("<highlighttext>", "").replace("</highlighttext>", "")
+                        desc = snippet.get("requirement") or snippet.get("responsibility") or "Репортажная и событийная съемка."
+                        desc = desc.replace("<highlighttext>", "").replace("</highlighttext>", "")
 
                         items.append({
                             "id": v_id,
                             "source": "HH",
-                            "title": vac.get("name", "Спортивный фотограф"),
-                            "company": vac.get("employer", {}).get("name", "Спортивная организация"),
+                            "title": name,
+                            "company": vac.get("employer", {}).get("name", "Компания"),
                             "location": vac.get("area", {}).get("name", "Москва / МО"),
                             "price": price,
                             "tags": tags[:3],
                             "url": vac.get("alternate_url", "https://hh.ru"),
-                            "is_urgent": any(w in vac.get("name", "").lower() for w in ["срочно", "выезд", "турнир"]),
+                            "is_urgent": any(w in name_lower for w in ["срочно", "выезд", "турнир", "выходного"]),
                             "deadline": "Свежее",
-                            "description": clean_desc
+                            "description": desc
                         })
             except Exception as e:
                 print(f"Ошибка запроса HH ({q}): {e}")
-            time.sleep(0.2)
+            time.sleep(0.15)
 
-    print(f"-> Собрано с HH: {len(items)}")
+    print(f"-> Итого собрано с HH: {len(items)}")
     return items
 
 def parse_trudvsem():
-    print("-> Сбор с портала Работа России / ТрудВсем...")
+    print("-> Сбор с портала ТрудВсем (Работа России)...")
     items = []
-    # Регионы: 77 - Москва, 50 - Московская область
+    # 77 - Москва, 50 - Московская область
     for region_code in ["7700000000000", "5000000000000"]:
-        url = f"http://opendata.trudvsem.ru/api/v1/vacancies/region/{region_code}"
-        params = {"text": "фотограф", "limit": 20}
+        url = f"https://opendata.trudvsem.ru/api/v1/vacancies/region/{region_code}"
+        params = {"text": "фотограф", "limit": 40}
         try:
             res = requests.get(url, params=params, timeout=10)
             if res.status_code == 200:
@@ -114,18 +125,18 @@ def parse_trudvsem():
                         "id": v_id,
                         "source": "Job / ТрудВсем",
                         "title": v.get("job-name", "Фотограф репортажа / мероприятий"),
-                        "company": v.get("company", {}).get("name", "Гос. учреждение / Клуб"),
+                        "company": v.get("company", {}).get("name", "Организация / Клуб"),
                         "location": "Москва и МО",
                         "price": price,
-                        "tags": ["Гос. сектор / Клубы", "Репортаж"],
+                        "tags": ["Репортаж", "События"],
                         "url": v.get("vac_url", "https://trudvsem.ru"),
                         "is_urgent": False,
                         "deadline": "Актуально",
-                        "description": v.get("duty", "Съемка спортивных мероприятий и подготовка репортажного материала.")
+                        "description": v.get("duty", "Съемка мероприятий и оперативная подготовка фотоматериалов.")
                     })
         except Exception as e:
             print(f"Ошибка ТрудВсем: {e}")
-    print(f"-> Собрано с ТрудВсем: {len(items)}")
+    print(f"-> Итого собрано с ТрудВсем: {len(items)}")
     return items
 
 def main():
