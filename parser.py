@@ -1,113 +1,142 @@
 import json
 import time
 import requests
-from bs4 import BeautifulSoup
 
 HEADERS = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
-    "Accept-Language": "ru-RU,ru;q=0.9",
+    "User-Agent": "MatchFocusBot/1.0 (contact: support@matchfocus.local)",
+    "Accept": "application/json",
 }
 
 def parse_hh():
     print("-> Сбор с HeadHunter...")
     items = []
-    queries = ["спортивный фотограф", "фотограф спорт", "репортажный фотограф"]
+    # Расширенный список релевантных запросов для спортивного и динамичного репортажа
+    queries = [
+        "спортивный фотограф",
+        "фотограф спорт",
+        "репортажный фотограф",
+        "фотограф мероприятий",
+        "фотограф матчей",
+        "фотокорреспондент",
+        "видеооператор спорт"
+    ]
     seen_ids = set()
 
-    for q in queries:
-        for area_id in [1, 2014]:  # Москва и МО
+    # 1 - Москва, 2014 - Московская область
+    for area_id in [1, 2014]:
+        for q in queries:
             url = "https://api.hh.ru/vacancies"
             params = {
                 "text": q,
                 "area": area_id,
-                "per_page": 10,
+                "per_page": 15,
                 "order_by": "publication_time",
             }
             try:
                 res = requests.get(url, params=params, headers=HEADERS, timeout=10)
                 if res.status_code == 200:
-                    for vac in res.json().get("items", []):
+                    data = res.json()
+                    for vac in data.get("items", []):
                         v_id = f"hh_{vac['id']}"
                         if v_id in seen_ids:
                             continue
                         seen_ids.add(v_id)
 
+                        # Обработка вилки гонорара
                         price = "По договорённости"
                         sal = vac.get("salary")
                         if sal:
+                            cur = "₽" if sal.get("currency") in ["RUR", "RUB", None] else sal.get("currency")
                             if sal.get("from") and sal.get("to"):
-                                price = f"{sal['from']:,} – {sal['to']:,} ₽".replace(",", " ")
+                                price = f"{sal['from']:,} – {sal['to']:,} {cur}".replace(",", " ")
                             elif sal.get("from"):
-                                price = f"от {sal['from']:,} ₽".replace(",", " ")
+                                price = f"от {sal['from']:,} {cur}".replace(",", " ")
                             elif sal.get("to"):
-                                price = f"до {sal['to']:,} ₽".replace(",", " ")
+                                price = f"до {sal['to']:,} {cur}".replace(",", " ")
+
+                        # Теги специализации
+                        emp = vac.get("employment", {}).get("name", "Репортаж")
+                        schedule = vac.get("schedule", {}).get("name", "Проектная работа")
+                        tags = [t for t in [emp, schedule, "Спорт / Экшн"] if t]
+
+                        snippet = vac.get("snippet", {})
+                        resp_text = snippet.get("requirement") or snippet.get("responsibility") or "Съемка спортивных соревнований, турниров и динамичных событий."
+                        # Очистка от подсветки тегов HH
+                        clean_desc = resp_text.replace("<highlighttext>", "").replace("</highlighttext>", "")
 
                         items.append({
                             "id": v_id,
                             "source": "HH",
-                            "title": vac.get("name", "Фотограф"),
-                            "company": vac.get("employer", {}).get("name", "Компания"),
+                            "title": vac.get("name", "Спортивный фотограф"),
+                            "company": vac.get("employer", {}).get("name", "Спортивная организация"),
                             "location": vac.get("area", {}).get("name", "Москва / МО"),
                             "price": price,
-                            "tags": [vac.get("employment", {}).get("name", "Репортаж"), "Спорт"],
+                            "tags": tags[:3],
                             "url": vac.get("alternate_url", "https://hh.ru"),
-                            "is_urgent": "срочно" in vac.get("name", "").lower(),
+                            "is_urgent": any(w in vac.get("name", "").lower() for w in ["срочно", "выезд", "турнир"]),
                             "deadline": "Свежее",
-                            "description": "Съемка спортивных событий, динамичный репортаж. Подробности в первоисточнике."
+                            "description": clean_desc
                         })
             except Exception as e:
-                print(f"Ошибка HH ({q}): {e}")
-            time.sleep(0.3)
+                print(f"Ошибка запроса HH ({q}): {e}")
+            time.sleep(0.2)
+
+    print(f"-> Собрано с HH: {len(items)}")
     return items
 
-def parse_avito():
-    print("-> Сбор с Авито...")
+def parse_trudvsem():
+    print("-> Сбор с портала Работа России / ТрудВсем...")
     items = []
-    url = "https://www.avito.ru/moskva_i_mo/vakansii?q=спортивный+фотограф"
-    try:
-        res = requests.get(url, headers=HEADERS, timeout=10)
-        if res.status_code == 200:
-            soup = BeautifulSoup(res.text, "html.parser")
-            cards = soup.select('div[data-marker="item"]')[:8]
-            for card in cards:
-                title_el = card.select_one('h3[itemprop="name"]') or card.select_one('a[data-marker="item-title"]')
-                price_el = card.select_one('meta[itemprop="price"]') or card.select_one('[data-marker="item-price"]')
-                link_el = card.select_one('a[data-marker="item-title"]')
-                geo_el = card.select_one('div[class*="geo-root"]')
+    # Регионы: 77 - Москва, 50 - Московская область
+    for region_code in ["7700000000000", "5000000000000"]:
+        url = f"http://opendata.trudvsem.ru/api/v1/vacancies/region/{region_code}"
+        params = {"text": "фотограф", "limit": 20}
+        try:
+            res = requests.get(url, params=params, timeout=10)
+            if res.status_code == 200:
+                data = res.json()
+                vacancies = data.get("results", {}).get("vacancies", [])
+                for entry in vacancies:
+                    v = entry.get("vacancy", {})
+                    v_id = f"trud_{v.get('id', hash(v.get('vac_url', '')))}"
+                    
+                    price = "По договорённости"
+                    sal_min = v.get("salary_min")
+                    sal_max = v.get("salary_max")
+                    if sal_min and sal_max and sal_min != sal_max:
+                        price = f"{sal_min:,} – {sal_max:,} ₽".replace(",", " ")
+                    elif sal_min:
+                        price = f"от {sal_min:,} ₽".replace(",", " ")
+                    elif sal_max:
+                        price = f"до {sal_max:,} ₽".replace(",", " ")
 
-                title = title_el.get_text(strip=True) if title_el else "Спортивный фотограф"
-                link = f"https://www.avito.ru{link_el['href']}" if link_el and 'href' in link_el.attrs else "https://avito.ru"
-
-                price = "По договорённости"
-                if price_el:
-                    pval = price_el.get("content") or price_el.get_text(strip=True)
-                    if pval and any(c.isdigit() for c in pval):
-                        price = f"{pval} ₽" if "₽" not in pval else pval
-
-                loc = geo_el.get_text(strip=True) if geo_el else "Москва / МО"
-
-                items.append({
-                    "id": card.get("data-item-id", str(hash(link))),
-                    "source": "AVITO",
-                    "title": title,
-                    "company": "Заказчик с Авито",
-                    "location": loc,
-                    "price": price,
-                    "tags": ["Авито", "Спортсъемка"],
-                    "url": link,
-                    "is_urgent": "срочно" in title.lower(),
-                    "deadline": "Актуально",
-                    "description": "Заказ на фотосъемку с площадки Авито."
-                })
-    except Exception as e:
-        print(f"Ошибка Avito: {e}")
+                    items.append({
+                        "id": v_id,
+                        "source": "Job / ТрудВсем",
+                        "title": v.get("job-name", "Фотограф репортажа / мероприятий"),
+                        "company": v.get("company", {}).get("name", "Гос. учреждение / Клуб"),
+                        "location": "Москва и МО",
+                        "price": price,
+                        "tags": ["Гос. сектор / Клубы", "Репортаж"],
+                        "url": v.get("vac_url", "https://trudvsem.ru"),
+                        "is_urgent": False,
+                        "deadline": "Актуально",
+                        "description": v.get("duty", "Съемка спортивных мероприятий и подготовка репортажного материала.")
+                    })
+        except Exception as e:
+            print(f"Ошибка ТрудВсем: {e}")
+    print(f"-> Собрано с ТрудВсем: {len(items)}")
     return items
 
 def main():
-    jobs = parse_hh() + parse_avito()
+    hh_jobs = parse_hh()
+    trud_jobs = parse_trudvsem()
+    all_jobs = hh_jobs + trud_jobs
+
     with open("vacancies.json", "w", encoding="utf-8") as f:
-        json.dump(jobs, f, ensure_ascii=False, indent=2)
-    print(f"Успешно сохранено {len(jobs)} вакансий прямо в файл vacancies.json!")
+        json.dump(all_jobs, f, ensure_ascii=False, indent=2)
+
+    print(f"Всего сохранено вакансий: {len(all_jobs)}")
 
 if __name__ == "__main__":
     main()
