@@ -280,7 +280,7 @@
           <div class="brand-title">MATCH <span>FOCUS</span></div>
           <div class="sub-brand">СПОРТИВНАЯ РЕПОРТАЖНАЯ ЛЕНТА</div>
         </div>
-        <button class="icon-btn" onclick="loadVacancies()">🔄</button>
+       <button class="icon-btn" onclick="loadVacancies()">🔄</button>
       </div>
 
       <div class="filter-scroll">
@@ -303,7 +303,7 @@
     </nav>
   </div>
 
-  <script>
+ <script>
     let rawVacancies = [];
     let currentFilter = 'ALL';
 
@@ -329,7 +329,7 @@
         feed.innerHTML = `
           <div style="text-align: center; color: #ff5555; padding: 40px 15px; font-size: 13px; line-height: 1.5;">
             Ошибка загрузки: ${err.message}.<br>
-            Запустите воркфлоу в Actions, чтобы собрать данные.
+            Убедитесь, что файл vacancies.json есть в репозитории.
           </div>
         `;
       }
