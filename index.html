@@ -311,13 +311,37 @@
     let rawVacancies = [];
     let currentFilter = 'ALL';
 
-    async function fetchFromYandexDisk() {
+    let rawVacancies = [];
+    let currentFilter = 'ALL';
+
+    async function loadVacancies() {
       const feed = document.getElementById('feed');
       feed.innerHTML = `
         <div style="text-align: center; color: #7b8190; padding-top: 60px; font-size: 13px;">
-          Загрузка вакансий с Яндекс Диска...
+          Загрузка вакансий...
         </div>
       `;
+
+      try {
+        // Читаем vacancies.json прямо из нашего репозитория с защитой от кэширования
+        const response = await fetch('./vacancies.json?v=' + Date.now());
+        if (!response.ok) {
+          throw new Error("Файл vacancies.json ещё не создан");
+        }
+        rawVacancies = await response.json();
+        renderFeed();
+      } catch (err) {
+        console.error(err);
+        feed.innerHTML = `
+          <div style="text-align: center; color: #ff5555; padding: 40px 15px; font-size: 13px; line-height: 1.5;">
+            Ошибка загрузки: ${err.message}.<br>
+            Запустите воркфлоу в Actions, чтобы сгенерировать первый список.
+          </div>
+        `;
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', loadVacancies);
 
       try {
         // Запрос к бесплатному публичному REST API Яндекс Диска для получения прямой ссылки на скачивание
