@@ -308,87 +308,120 @@
   </div>
 
   <script>
-    let rawVacancies = [];
-    let currentFilter = 'ALL';
+  let rawVacancies = [];
+  let currentFilter = 'ALL';
 
-    async function loadVacancies() {
-      const feed = document.getElementById('feed');
-      if (!feed) return;
+  async function loadVacancies() {
+    const feed = document.getElementById('feed');
+    if (!feed) return;
 
+    feed.innerHTML = `
+      <div style="text-align: center; color: #7b8190; padding-top: 60px; font-size: 13px;">
+        Обновление ленты...
+      </div>
+    `;
+
+    try {
+      const response = await fetch('./vacancies.json?v=' + Date.now());
+      if (!response.ok) {
+        throw new Error("Файл данных ещё формируется");
+      }
+      rawVacancies = await response.json();
+      console.log("Загружено вакансий всего:", rawVacancies.length);
+      
+      updateFilterCounts();
+      renderFeed();
+    } catch (err) {
+      console.error(err);
       feed.innerHTML = `
-        <div style="text-align: center; color: #7b8190; padding-top: 60px; font-size: 13px;">
-          Обновление ленты...
+        <div style="text-align: center; color: #ff5555; padding: 40px 15px; font-size: 13px; line-height: 1.5;">
+          ${err.message}.<br>Нажмите 🔄 через пару секунд.
         </div>
       `;
-
-      try {
-        const response = await fetch('./vacancies.json?v=' + Date.now());
-        if (!response.ok) {
-          throw new Error("Файл данных ещё формируется");
-        }
-        rawVacancies = await response.json();
-        renderFeed();
-      } catch (err) {
-        console.error(err);
-        feed.innerHTML = `
-          <div style="text-align: center; color: #ff5555; padding: 40px 15px; font-size: 13px; line-height: 1.5;">
-            ${err.message}.<br>Нажмите 🔄 через пару секунд.
-          </div>
-        `;
-      }
     }
+  }
 
-    function setFilter(source, btn) {
-      currentFilter = source;
-      document.querySelectorAll('.filter-chip').forEach(el => el.classList.remove('active'));
-      if (btn) btn.classList.add('active');
-      renderFeed();
-    }
+  // Обновляем бейджи с количеством прямо на кнопках фильтров
+  function updateFilterCounts() {
+    const totalCount = rawVacancies.length;
+    const avitoCount = rawVacancies.filter(v => (v.source || '').toLowerCase().includes('авито')).length;
+    const trudCount = rawVacancies.filter(v => {
+      const src = (v.source || '').toLowerCase();
+      return src.includes('труд') || src.includes('росси') || src.includes('job');
+    }).length;
 
-    function renderFeed() {
-      const feed = document.getElementById('feed');
-      if (!feed) return;
+    const btnAll = document.querySelector(".filters button:nth-child(1)");
+    const btnTrud = document.querySelector(".filters button:nth-child(2)");
+    const btnAvito = document.querySelector(".filters button:nth-child(3)");
 
-      const filtered = rawVacancies.filter(v => {
-        if (currentFilter === 'ALL') return true;
-        return (v.source || '').trim().toLowerCase() === currentFilter.trim().toLowerCase();
-      });
+    if (btnAll) btnAll.textContent = `Все (${totalCount})`;
+    if (btnTrud) btnTrud.textContent = `Работа России (${trudCount})`;
+    if (btnAvito) btnAvito.textContent = `Авито (${avitoCount})`;
+  }
 
-      if (filtered.length === 0) {
-        feed.innerHTML = `
-          <div style="text-align: center; color: #7b8190; padding-top: 60px; font-size: 13px;">
-            В этой категории вакансий не найдено
-          </div>
-        `;
-        return;
+  function setFilter(source, btn) {
+    currentFilter = source;
+    document.querySelectorAll('.filter-chip').forEach(el => el.classList.remove('active'));
+    if (btn) btn.classList.add('active');
+    renderFeed();
+  }
+
+  function renderFeed() {
+    const feed = document.getElementById('feed');
+    if (!feed) return;
+
+    // «Умная» фильтрация без жесткой привязки к регистру и символам
+    const filtered = rawVacancies.filter(v => {
+      if (currentFilter === 'ALL') return true;
+      
+      const itemSrc = (v.source || '').toLowerCase();
+      const filterKey = currentFilter.toLowerCase();
+
+      if (filterKey === 'авито') {
+        return itemSrc.includes('авито') || itemSrc.includes('avito');
+      }
+      if (filterKey === 'трудвсем' || filterKey === 'работа россии') {
+        return itemSrc.includes('труд') || itemSrc.includes('росси') || itemSrc.includes('job');
       }
 
-      feed.innerHTML = filtered.map(v => `
-        <div class="card" onclick="openDetails('${v.id}')">
-          <div class="card-header">
-            <span class="source-badge">${v.source || 'Инфо'}</span>
-            ${v.is_urgent ? '<span class="badge-urgent">Срочно</span>' : `<span style="font-size: 11px; color: #7b8190;">${v.deadline || 'Актуально'}</span>`}
-          </div>
-          <div class="card-title">${v.title}</div>
-          <div class="card-company">${v.company || 'Заказчик'} • ${v.location || 'Москва и МО'}</div>
-          <div class="tags">
-            ${(v.tags || []).map(t => `<span class="tag">${t}</span>`).join('')}
-          </div>
-          <div class="card-footer">
-            <span class="price">${v.price || 'По договорённости'}</span>
-            <button class="respond-btn" onclick="event.stopPropagation(); window.open('${v.url}', '_blank')">Откликнуться</button>
-          </div>
+      return itemSrc.includes(filterKey);
+    });
+
+    if (filtered.length === 0) {
+      feed.innerHTML = `
+        <div style="text-align: center; color: #7b8190; padding-top: 60px; font-size: 13px;">
+          В этой категории вакансий не найдено
         </div>
-      `).join('');
+      `;
+      return;
     }
 
-    function openDetails(id) {
-      const vac = rawVacancies.find(v => v.id === id);
-      if (!vac) return;
-      alert(`${vac.title}\n\nРаботодатель / Заказчик: ${vac.company}\nЛокация: ${vac.location}\nОплата: ${vac.price}\n\n${vac.description || ''}`);
-    }
+    feed.innerHTML = filtered.map(v => `
+      <div class="card" onclick="openDetails('${v.id}')">
+        <div class="card-header">
+          <span class="source-badge">${v.source || 'Инфо'}</span>
+          ${v.is_urgent ? '<span class="badge-urgent">Срочно</span>' : `<span style="font-size: 11px; color: #7b8190;">${v.deadline || 'Актуально'}</span>`}
+        </div>
+        <div class="card-title">${v.title}</div>
+        <div class="card-company">${v.company || 'Заказчик'} • ${v.location || 'Москва и МО'}</div>
+        <div class="tags">
+          ${(v.tags || []).map(t => `<span class="tag">${t}</span>`).join('')}
+        </div>
+        <div class="card-footer">
+          <span class="price">${v.price || 'По договорённости'}</span>
+          <button class="respond-btn" onclick="event.stopPropagation(); window.open('${v.url}', '_blank')">Откликнуться</button>
+        </div>
+      </div>
+    `).join('');
+  }
 
-    document.addEventListener('DOMContentLoaded', loadVacancies);
-  </script>
+  function openDetails(id) {
+    const vac = rawVacancies.find(v => v.id === id);
+    if (!vac) return;
+    alert(`${vac.title}\n\nРаботодатель / Заказчик: ${vac.company}\nЛокация: ${vac.location}\nОплата: ${vac.price}\n\n${vac.description || ''}`);
+  }
+
+  document.addEventListener('DOMContentLoaded', loadVacancies);
+</script>
 </body>
 </html>
