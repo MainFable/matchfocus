@@ -304,18 +304,13 @@
   </div>
 
   <script>
-    // ВСТАВЬТЕ СЮДА ВАШУ ПУБЛИЧНУЮ ССЫЛКУ С ЯНДЕКС ДИСКА:
-    const YANDEX_PUBLIC_URL = "https://disk.yandex.ru/d/4U_uRE27KJAz3Q";
-
-
-    let rawVacancies = [];
-    let currentFilter = 'ALL';
-
     let rawVacancies = [];
     let currentFilter = 'ALL';
 
     async function loadVacancies() {
       const feed = document.getElementById('feed');
+      if (!feed) return;
+      
       feed.innerHTML = `
         <div style="text-align: center; color: #7b8190; padding-top: 60px; font-size: 13px;">
           Загрузка вакансий...
@@ -323,10 +318,9 @@
       `;
 
       try {
-        // Читаем vacancies.json прямо из нашего репозитория с защитой от кэширования
         const response = await fetch('./vacancies.json?v=' + Date.now());
         if (!response.ok) {
-          throw new Error("Файл vacancies.json ещё не создан");
+          throw new Error("Файл vacancies.json ещё не создан в репозитории");
         }
         rawVacancies = await response.json();
         renderFeed();
@@ -335,97 +329,63 @@
         feed.innerHTML = `
           <div style="text-align: center; color: #ff5555; padding: 40px 15px; font-size: 13px; line-height: 1.5;">
             Ошибка загрузки: ${err.message}.<br>
-            Запустите воркфлоу в Actions, чтобы сгенерировать первый список.
+            Запустите воркфлоу в Actions, чтобы собрать данные.
           </div>
         `;
       }
     }
 
-    document.addEventListener('DOMContentLoaded', loadVacancies);
-
-      try {
-        // Запрос к бесплатному публичному REST API Яндекс Диска для получения прямой ссылки на скачивание
-        const metaApiUrl = `https://cloud-api.yandex.net/v1/disk/public/resources/download?public_key=${encodeURIComponent(YANDEX_PUBLIC_URL)}`;
-        const metaResponse = await fetch(metaApiUrl);
-        const metaData = await metaResponse.json();
-
-        if (!metaData.href) {
-          throw new Error("Не удалось получить ссылку на файл");
-        }
-
-        // Скачиваем сам JSON файл
-        const fileResponse = await fetch(metaData.href);
-        rawVacancies = await fileResponse.json();
-        renderFeed();
-
-      } catch (err) {
-        console.error(err);
-        feed.innerHTML = `
-          <div style="text-align: center; color: #ff5555; padding: 40px 15px; font-size: 13px; line-height: 1.5;">
-            Ошибка загрузки с Яндекс Диска.<br>
-            Проверьте, вставили ли вы публичную ссылку в <b>YANDEX_PUBLIC_URL</b>.
-          </div>
-        `;
-      }
-    }
-
-    function setFilter(source, element) {
-      document.querySelectorAll('.filter-pill').forEach(btn => btn.classList.remove('active'));
-      element.classList.add('active');
+    function setFilter(source, btn) {
       currentFilter = source;
+      document.querySelectorAll('.filter-chip').forEach(el => el.classList.remove('active'));
+      if (btn) btn.classList.add('active');
       renderFeed();
     }
 
     function renderFeed() {
       const feed = document.getElementById('feed');
-      feed.innerHTML = '';
+      if (!feed) return;
 
-      const filtered = rawVacancies.filter(item => {
+      const filtered = rawVacancies.filter(v => {
         if (currentFilter === 'ALL') return true;
-        return item.source === currentFilter;
+        return (v.source || '').toUpperCase() === currentFilter.toUpperCase();
       });
 
       if (filtered.length === 0) {
         feed.innerHTML = `
-          <div style="text-align: center; color: #7b8190; padding-top: 50px; font-size: 13px;">
-            В выбранном разделе нет вакансий.
+          <div style="text-align: center; color: #7b8190; padding-top: 60px; font-size: 13px;">
+            В этой категории вакансий не найдено
           </div>
         `;
         return;
       }
 
-      filtered.forEach(item => {
-        const badgeClass = item.source === 'HH' ? 'badge-hh' : (item.source === 'AVITO' ? 'badge-avito' : 'badge-job');
-        
-        const card = document.createElement('div');
-        card.className = 'job-card';
-        card.innerHTML = `
+      feed.innerHTML = filtered.map(v => `
+        <div class="card" onclick="openDetails('${v.id}')">
           <div class="card-header">
-            <div class="badge-icon ${badgeClass}">${item.source}</div>
-            <div class="header-content">
-              <div class="job-title">${item.title}</div>
-              <div class="job-sub">${item.company} • ${item.location}</div>
-            </div>
-            ${item.is_urgent ? `<span class="urgent-pill">Срочно</span>` : ''}
+            <span class="source-tag source-${(v.source || 'hh').toLowerCase()}">${v.source || 'HH'}</span>
+            <span class="deadline">${v.deadline || 'Свежее'}</span>
           </div>
-
-          <div class="tags-container">
-            <span class="tag-chip price-chip">${item.price}</span>
-            ${item.tags.map(t => `<span class="tag-chip">${t}</span>`).join('')}
+          <div class="card-title">${v.title}</div>
+          <div class="card-company">${v.company || 'Прямой заказчик'} • ${v.location || 'Москва / МО'}</div>
+          <div class="tags">
+            ${(v.tags || []).map(t => `<span class="tag">${t}</span>`).join('')}
           </div>
-
           <div class="card-footer">
-            <span class="deadline-text">${item.deadline}</span>
-            <a href="${item.url}" target="_blank" class="btn-action">
-              ${item.source === 'AVITO' ? 'На Авито' : 'Откликнуться'}
-            </a>
+            <span class="price">${v.price || 'По договорённости'}</span>
+            <button class="respond-btn" onclick="event.stopPropagation(); window.open('${v.url}', '_blank')">Откликнуться</button>
           </div>
-        `;
-        feed.appendChild(card);
-      });
+        </div>
+      `).join('');
     }
 
-    document.addEventListener('DOMContentLoaded', fetchFromYandexDisk);
+    function openDetails(id) {
+      const vac = rawVacancies.find(v => v.id === id);
+      if (!vac) return;
+      alert(`${vac.title}\n\nОрганизация: ${vac.company}\nЛокация: ${vac.location}\nОплата: ${vac.price}\n\n${vac.description || ''}`);
+    }
+
+    document.addEventListener('DOMContentLoaded', loadVacancies);
   </script>
 </body>
 </html>
