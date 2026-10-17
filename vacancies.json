@@ -78,5 +78,198 @@
     "is_urgent": false,
     "deadline": "Актуально",
     "description": "Вакансия компании: \"Фотоотель\" Мы небольшая компания, без глупых правил и диктатуры. Наши мастера умеют фотографировать, печатать и обрабатывать фотографии, делать дизайн для полиграфической продукции. У нас в команде будет уютно. Наша компания \"Фотоотель\" был..."
+  },
+  {
+    "id": "avito_8381399110",
+    "source": "Авито",
+    "title": "Фотограф без опыта ежедневная зарплата",
+    "company": "Заказчик с Авито",
+    "location": "Москва / МО",
+    "price": "10000 ₽",
+    "tags": [
+      "Авито",
+      "Репортаж"
+    ],
+    "url": "https://www.avito.ru/moskva/vakansii/fotograf_bez_opyta_ezhednevnaya_zarplata_8381399110?context=H4sIAAAAAAAA_wE_AMD_YToyOntzOjEzOiJsb2NhbFByaW9yaXR5IjtiOjA7czoxOiJ4IjtzOjE2OiJYVTBnMjRjWVZiSHZIemhmIjt9SvcUaz8AAAA",
+    "is_urgent": false,
+    "deadline": "Свежее",
+    "description": "Заказ на фотосъемку с Авито. Нажмите «Откликнуться», чтобы открыть объявление."
+  },
+  {
+    "id": "avito_7410073680",
+    "source": "Авито",
+    "title": "Начинающая фотограф Ежедневные выплаты",
+    "company": "Заказчик с Авито",
+    "location": "Москва / МО",
+    "price": "70000 ₽",
+    "tags": [
+      "Авито",
+      "Репортаж"
+    ],
+    "url": "https://www.avito.ru/iksha/vakansii/nachinayuschaya_fotograf_ezhednevnye_vyplaty_7410073680?context=H4sIAAAAAAAA_wE_AMD_YToyOntzOjEzOiJsb2NhbFByaW9yaXR5IjtiOjA7czoxOiJ4IjtzOjE2OiJYVTBnMjRjWVZiSHZIemhmIjt9SvcUaz8AAAA",
+    "is_urgent": false,
+    "deadline": "Свежее",
+    "description": "Заказ на фотосъемку с Авито. Нажмите «Откликнуться», чтобы открыть объявление."
+  },
+  {
+    "id": "avito_4157006372",
+    "source": "Авито",
+    "title": "Школьный фотограф",
+    "company": "Заказчик с Авито",
+    "location": "Москва / МО",
+    "price": "10000 ₽",
+    "tags": [
+      "Авито",
+      "Репортаж"
+    ],
+    "url": "https://www.avito.ru/moskva/vakansii/shkolnyy_fotograf_4157006372?context=H4sIAAAAAAAA_wE_AMD_YToyOntzOjEzOiJsb2NhbFByaW9yaXR5IjtiOjA7czoxOiJ4IjtzOjE2OiJYVTBnMjRjWVZiSHZIemhmIjt9SvcUaz8AAAA",
+    "is_urgent": false,
+    "deadline": "Свежее",
+    "description": "Заказ на фотосъемку с Авито. Нажмите «Откликнуться», чтобы открыть объявление."
+  },
+  {
+    "id": "avito_8378628264",
+    "source": "Авито",
+    "title": "Фотограф моментальной печати",
+    "company": "Заказчик с Авито",
+    "location": "Москва / МО",
+    "price": "165000 ₽",
+    "tags": [
+      "Авито",
+      "Репортаж"
+    ],
+    "url": "https://www.avito.ru/moskva/vakansii/fotograf_momentalnoy_pechati_8378628264?context=H4sIAAAAAAAA_wE_AMD_YToyOntzOjEzOiJsb2NhbFByaW9yaXR5IjtiOjA7czoxOiJ4IjtzOjE2OiJYVTBnMjRjWVZiSHZIemhmIjt9SvcUaz8AAAA",
+    "is_urgent": false,
+    "deadline": "Свежее",
+    "description": "Заказ на фотосъемку с Авито. Нажмите «Откликнуться», чтобы открыть объявление."
+  },
+  {
+    "id": "avito_8310490164",
+    "source": "Авито",
+    "title": "Фотограф, ассистент фотографа",
+    "company": "Заказчик с Авито",
+    "location": "Москва / МО",
+    "price": "95000 ₽",
+    "tags": [
+      "Авито",
+      "Репортаж"
+    ],
+    "url": "https://www.avito.ru/moskva/vakansii/fotograf_assistent_fotografa_8310490164?context=H4sIAAAAAAAA_wE_AMD_YToyOntzOjEzOiJsb2NhbFByaW9yaXR5IjtiOjA7czoxOiJ4IjtzOjE2OiJYVTBnMjRjWVZiSHZIemhmIjt9SvcUaz8AAAA",
+    "is_urgent": false,
+    "deadline": "Свежее",
+    "description": "Заказ на фотосъемку с Авито. Нажмите «Откликнуться», чтобы открыть объявление."
+  },
+  {
+    "id": "avito_8322666461",
+    "source": "Авито",
+    "title": "Начинающий Фотограф на картинг E-go",
+    "company": "Заказчик с Авито",
+    "location": "Москва / МО",
+    "price": "3000 ₽",
+    "tags": [
+      "Авито",
+      "Репортаж"
+    ],
+    "url": "https://www.avito.ru/moskva/vakansii/nachinayuschiy_fotograf_na_karting_e-go_8322666461?context=H4sIAAAAAAAA_wE_AMD_YToyOntzOjEzOiJsb2NhbFByaW9yaXR5IjtiOjA7czoxOiJ4IjtzOjE2OiJYVTBnMjRjWVZiSHZIemhmIjt9SvcUaz8AAAA",
+    "is_urgent": false,
+    "deadline": "Свежее",
+    "description": "Заказ на фотосъемку с Авито. Нажмите «Откликнуться», чтобы открыть объявление."
+  },
+  {
+    "id": "avito_8285569397",
+    "source": "Авито",
+    "title": "Инструктор конного спорта (на пони)",
+    "company": "Заказчик с Авито",
+    "location": "Москва / МО",
+    "price": "0 ₽",
+    "tags": [
+      "Авито",
+      "Репортаж",
+      "Спорт"
+    ],
+    "url": "https://www.avito.ru/istra/vakansii/instruktor_konnogo_sporta_na_poni_8285569397?context=H4sIAAAAAAAA_wE_AMD_YToyOntzOjEzOiJsb2NhbFByaW9yaXR5IjtiOjA7czoxOiJ4IjtzOjE2OiJYVTBnMjRjWVZiSHZIemhmIjt9SvcUaz8AAAA",
+    "is_urgent": false,
+    "deadline": "Свежее",
+    "description": "Заказ на фотосъемку с Авито. Нажмите «Откликнуться», чтобы открыть объявление."
+  },
+  {
+    "id": "avito_4554159755",
+    "source": "Авито",
+    "title": "Сотрудник в копицентр, вакансия в фотосалон",
+    "company": "Заказчик с Авито",
+    "location": "Москва / МО",
+    "price": "60000 ₽",
+    "tags": [
+      "Авито",
+      "Репортаж"
+    ],
+    "url": "https://www.avito.ru/balashiha/vakansii/sotrudnik_v_kopitsentr_vakansiya_v_fotosalon_4554159755?context=H4sIAAAAAAAA_wE_AMD_YToyOntzOjEzOiJsb2NhbFByaW9yaXR5IjtiOjA7czoxOiJ4IjtzOjE2OiJYVTBnMjRjWVZiSHZIemhmIjt9SvcUaz8AAAA",
+    "is_urgent": false,
+    "deadline": "Свежее",
+    "description": "Заказ на фотосъемку с Авито. Нажмите «Откликнуться», чтобы открыть объявление."
+  },
+  {
+    "id": "avito_8120661003",
+    "source": "Авито",
+    "title": "Сотрудник в копировальный центр / фотосалон",
+    "company": "Заказчик с Авито",
+    "location": "Москва / МО",
+    "price": "60000 ₽",
+    "tags": [
+      "Авито",
+      "Репортаж"
+    ],
+    "url": "https://www.avito.ru/podolsk/vakansii/sotrudnik_v_kopirovalnyy_tsentr_fotosalon_8120661003?context=H4sIAAAAAAAA_wE_AMD_YToyOntzOjEzOiJsb2NhbFByaW9yaXR5IjtiOjA7czoxOiJ4IjtzOjE2OiJYVTBnMjRjWVZiSHZIemhmIjt9SvcUaz8AAAA",
+    "is_urgent": false,
+    "deadline": "Свежее",
+    "description": "Заказ на фотосъемку с Авито. Нажмите «Откликнуться», чтобы открыть объявление."
+  },
+  {
+    "id": "avito_8366630892",
+    "source": "Авито",
+    "title": "Администратор фотостудии без опыта",
+    "company": "Заказчик с Авито",
+    "location": "Москва / МО",
+    "price": "95000 ₽",
+    "tags": [
+      "Авито",
+      "Репортаж"
+    ],
+    "url": "https://www.avito.ru/moskva/vakansii/administrator_fotostudii_bez_opyta_8366630892?context=H4sIAAAAAAAA_wE_AMD_YToyOntzOjEzOiJsb2NhbFByaW9yaXR5IjtiOjA7czoxOiJ4IjtzOjE2OiJYVTBnMjRjWVZiSHZIemhmIjt9SvcUaz8AAAA",
+    "is_urgent": false,
+    "deadline": "Свежее",
+    "description": "Заказ на фотосъемку с Авито. Нажмите «Откликнуться», чтобы открыть объявление."
+  },
+  {
+    "id": "avito_3917248910",
+    "source": "Авито",
+    "title": "Фото модель",
+    "company": "Заказчик с Авито",
+    "location": "Москва / МО",
+    "price": "2250 ₽",
+    "tags": [
+      "Авито",
+      "Репортаж"
+    ],
+    "url": "https://www.avito.ru/moskva/vakansii/foto_model_3917248910?context=H4sIAAAAAAAA_wE_AMD_YToyOntzOjEzOiJsb2NhbFByaW9yaXR5IjtiOjA7czoxOiJ4IjtzOjE2OiJYVTBnMjRjWVZiSHZIemhmIjt9SvcUaz8AAAA",
+    "is_urgent": false,
+    "deadline": "Свежее",
+    "description": "Заказ на фотосъемку с Авито. Нажмите «Откликнуться», чтобы открыть объявление."
+  },
+  {
+    "id": "avito_8483045307",
+    "source": "Авито",
+    "title": "Работа фотограф",
+    "company": "Заказчик с Авито",
+    "location": "Москва / МО",
+    "price": "90000 ₽",
+    "tags": [
+      "Авито",
+      "Репортаж"
+    ],
+    "url": "https://www.avito.ru/moskva/vakansii/rabota_fotograf_8483045307?context=H4sIAAAAAAAA_wE_AMD_YToyOntzOjEzOiJsb2NhbFByaW9yaXR5IjtiOjA7czoxOiJ4IjtzOjE2OiJYVTBnMjRjWVZiSHZIemhmIjt9SvcUaz8AAAA",
+    "is_urgent": false,
+    "deadline": "Свежее",
+    "description": "Заказ на фотосъемку с Авито. Нажмите «Откликнуться», чтобы открыть объявление."
   }
 ]
